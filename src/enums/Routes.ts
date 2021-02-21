@@ -1,0 +1,17 @@
+export enum Routes {
+  HOME = '/',
+  LOGIN = '/login',
+  RESET_PASSWORD = '/reset-password',
+  NEW_RESET_PASSWORD = '/new-reset-password',
+  SET_PASSWORD = '/set-password',
+  REQUEST_RESET = '/request-reset',
+  REGISTER = '/register',
+  VERIFY = '/verify',
+  RESULTS = '/results',
+  TRACKING = '/tracking',
+  COLLECTION = '/collection/:id',
+  ERROR403 = '/403',
+  ERROR404 = '/404',
+  ERROR500 = '/500',
+  ACCOUNT_SETTINGS = '/account-settings',
+}
