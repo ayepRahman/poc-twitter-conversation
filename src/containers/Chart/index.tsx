@@ -1,8 +1,8 @@
 import React from "react";
 import { useQuery, useApolloClient, useLazyQuery } from "@apollo/client";
 import { useQueryParam, useQueryParams, StringParam } from "use-query-params";
-import { format, parseISO } from "date-fns";
-import { Card } from "antd";
+import { format, parseISO, addMonths } from "date-fns";
+import { Card, Spin } from "antd";
 import { data } from "./mocks/data";
 import { GET_TREND_RESULT } from "./gql";
 import { TimePeriod } from "enums/TimePeriod";
@@ -16,13 +16,18 @@ import {
   LineMarkSeries,
 } from "react-vis";
 
-const DATE_FORMAT = "MMM yy";
+const DATE_FORMAT = "dd-MM-yy";
 
 const ChartContainer = styled(Card)`
+  margin: 1rem;
+`;
+
+const Container = styled.div`
   display: flex;
   justify-content: center;
-  height: calc(180px + 1rem);
-  margin: 1rem;
+  width: 100%;
+  height: 100%;
+  align-items: center;
 `;
 
 export const Chart = () => {
@@ -32,8 +37,11 @@ export const Chart = () => {
     end: StringParam,
   });
   const { search } = query;
-  const [fetchTrendline, { loading, error, data: fetchData }] = useLazyQuery(
-    GET_TREND_RESULT
+  const [fetchTrendline, { loading, data: fetchData }] = useLazyQuery(
+    GET_TREND_RESULT,
+    {
+      context: { serverName: "PYTHON" },
+    }
   );
 
   React.useEffect(() => {
@@ -41,7 +49,7 @@ export const Chart = () => {
       fetchTrendline({
         variables: {
           words: [...search?.split(" ")],
-          timeFilter: TimePeriod.P3M,
+          timeFilter: TimePeriod.P1M,
         },
       });
     }
@@ -49,25 +57,13 @@ export const Chart = () => {
 
   const mappedData = fetchData?.trendResult?.document?.trendline.map(
     (ele: any) => ({
-      x: ele.date,
+      x: addMonths(parseISO(ele.date), 1),
       y: ele.count,
     })
   );
 
-  const [selectionState, setSelectionState] = React.useState<{
-    selectionStart: string | null;
-    selectionEnd: string | null;
-  }>({
-    selectionStart: null,
-    selectionEnd: null,
-  });
-
   const handleOnDragEnd = (area: any) => {
     if (area) {
-      setSelectionState({
-        selectionStart: area && area?.left,
-        selectionEnd: area && area?.right,
-      });
       setQuery({
         start: area && area?.left,
         end: area && area?.right,
@@ -77,7 +73,11 @@ export const Chart = () => {
 
   return (
     <ChartContainer>
-      {mappedData?.length ? (
+      {loading && !mappedData?.length ? (
+        <Container>
+          <Spin />
+        </Container>
+      ) : mappedData?.length ? (
         <FlexibleWidthXYPlot xType="ordinal" margin={{ left: 50 }} height={180}>
           <LineMarkSeries data={mappedData} />
           <XAxis
@@ -85,7 +85,7 @@ export const Chart = () => {
               fontSize: "8px",
             }}
             tickFormat={(value) => {
-              return format(parseISO(value), DATE_FORMAT);
+              return format(new Date(value), DATE_FORMAT);
             }}
           />
           <YAxis />
@@ -97,7 +97,7 @@ export const Chart = () => {
           />
         </FlexibleWidthXYPlot>
       ) : (
-        <div>No Data</div>
+        <Container>No Data</Container>
       )}
     </ChartContainer>
   );

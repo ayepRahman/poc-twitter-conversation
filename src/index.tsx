@@ -1,10 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom";
-// import { ThemeProvider } from "styled-components";
+import { ThemeProvider } from "styled-components";
 import { ApolloProvider } from "@apollo/client";
 import { QueryParamProvider } from "use-query-params";
 import { BrowserRouter, Route } from "react-router-dom";
 import { client } from "apollo";
+import { theme } from "styles";
+import { GlobalStyle } from "styles/global";
 import App from "containers/App";
 import reportWebVitals from "./reportWebVitals";
 import "antd/dist/antd.css"; // or 'antd/dist/antd.less'
@@ -12,13 +14,16 @@ import "react-vis/dist/style.css";
 
 ReactDOM.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <QueryParamProvider ReactRouterRoute={Route}>
-        <ApolloProvider client={client}>
-          <App />
-        </ApolloProvider>
-      </QueryParamProvider>
-    </BrowserRouter>
+    <ThemeProvider theme={theme}>
+      <BrowserRouter>
+        <QueryParamProvider ReactRouterRoute={Route}>
+          <ApolloProvider client={client}>
+            <App />
+            <GlobalStyle />
+          </ApolloProvider>
+        </QueryParamProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   </React.StrictMode>,
   document.getElementById("root")
 );

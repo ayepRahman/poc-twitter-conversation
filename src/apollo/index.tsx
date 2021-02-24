@@ -3,15 +3,12 @@ import {
   ApolloLink,
   createHttpLink,
   InMemoryCache,
+  HttpLink,
 } from "@apollo/client";
+import { RetryLink } from "@apollo/client/link/retry";
 import { setContext } from "@apollo/client/link/context";
 import { LocalStorage } from "enums/LocalStorage";
 import { result } from "lodash";
-
-const httpLink = createHttpLink({
-  uri: process.env.REACT_APP_SHIFT_PYTHON_BACKEND,
-  credentials: "include",
-});
 
 const authLink = setContext((_, { headers }) => {
   // get the authentication token from local storage if it exists
@@ -34,7 +31,24 @@ const authLink = setContext((_, { headers }) => {
   };
 });
 
-const link = ApolloLink.from([authLink, httpLink]);
+const getHttpLinkOptions = (uri: string) => {
+  return {
+    uri,
+    // credentials: 'include',
+  };
+};
+
+const links = new RetryLink().split(
+  (operation) => operation.getContext().serverName === "PYTHON",
+  new HttpLink({
+    ...getHttpLinkOptions(process.env.REACT_APP_SHIFT_PYTHON_BACKEND || ""),
+  }),
+  new HttpLink({
+    ...getHttpLinkOptions(process.env.REACT_APP_NESTJS_BACKEND || ""),
+  })
+);
+
+const link = ApolloLink.from([authLink, links]);
 
 export const client = new ApolloClient({
   link,
