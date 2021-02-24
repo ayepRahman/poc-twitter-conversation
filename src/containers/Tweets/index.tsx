@@ -176,33 +176,41 @@ const Tweets = () => {
 
   if (loading) {
     return (
-      <SC.TweetsContainer>
-        <Card>
-          <div style={{ textAlign: "center" }}>
-            <Spin />
-          </div>
-        </Card>
-      </SC.TweetsContainer>
+      <Row justify="center" align="middle">
+        <Col key={ele.id} span={8}>
+          <SC.TweetsContainer>
+            <Card>
+              <div style={{ textAlign: "center" }}>
+                <Spin />
+              </div>
+            </Card>
+          </SC.TweetsContainer>
+        </Col>
+      </Row>
     );
   }
 
   if (!tweets?.length) {
     return (
-      <SC.TweetsContainer>
-        <Card>
-          <div style={{ textAlign: "center" }}>No Data</div>
-        </Card>
-      </SC.TweetsContainer>
+      <Row justify="center" align="middle">
+        <Col key={ele.id} span={8}>
+          <SC.TweetsContainer>
+            <Card>
+              <div style={{ textAlign: "center" }}>No Data</div>
+            </Card>
+          </SC.TweetsContainer>
+        </Col>
+      </Row>
     );
   }
 
   return (
     <SC.TweetsContainer>
       <Row justify="center" align="middle">
-        {tweets?.length
-          ? tweets.map((ele) => {
-              return (
-                <Col key={ele.id} span={8}>
+        <Col key={ele.id} span={8}>
+          {tweets?.length
+            ? tweets.map((ele) => {
+                return (
                   <TweetCard
                     id={ele.id}
                     avatarImgUrl={ele.userImgUrl}
@@ -217,10 +225,10 @@ const Tweets = () => {
                     retweetCount={ele.retweetCount}
                     favouriteCount={ele.favouriteCount}
                   />
-                </Col>
-              );
-            })
-          : null}
+                );
+              })
+            : null}
+        </Col>
       </Row>
     </SC.TweetsContainer>
   );

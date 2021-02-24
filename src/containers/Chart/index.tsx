@@ -14,9 +14,16 @@ import {
   Highlight,
   FlexibleWidthXYPlot,
   LineMarkSeries,
+  Crosshair,
+  CrosshairProps,
 } from "react-vis";
 
 const DATE_FORMAT = "dd-MM-yy";
+
+/**
+ * - Tooltip functionality
+ * - Add Label at the Top of Highlight - indicating the start and end of highlighted trendline area.
+ */
 
 const ChartContainer = styled(Card)`
   margin: 1rem;
@@ -29,6 +36,62 @@ const Container = styled.div`
   height: 100%;
   align-items: center;
 `;
+
+const TooltipContainer = styled.div`
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 0.25rem;
+  border-radius: 4px;
+  border: solid 1px #ddcec1;
+  width: 200px;
+`;
+
+const TooltipTitle = styled.div`
+  font-size: 1rem;
+  font-weight: bold;
+  color: #333333;
+`;
+
+const TooltipContent = styled.div`
+  display: flex;
+`;
+
+const TooltipLabel = styled.p`
+  font-size: 1rem;
+`;
+
+export interface ToolptipProps extends CrosshairProps {
+  title: string;
+  list: { label: string; value: string | number; color?: string }[];
+}
+
+const Tooltip: React.FC<ToolptipProps> = ({
+  values,
+  title,
+  list,
+  ...props
+}) => {
+  console.log("values", values);
+
+  return (
+    <>
+      {values?.length ? (
+        <Crosshair values={values} {...props}>
+          <TooltipContainer>
+            <TooltipTitle>{title}</TooltipTitle>
+            {list.map((ele) => {
+              return (
+                <TooltipContent>
+                  <TooltipLabel>{ele.label}:</TooltipLabel>
+                  <TooltipLabel>{ele.value}</TooltipLabel>
+                </TooltipContent>
+              );
+            })}
+          </TooltipContainer>
+        </Crosshair>
+      ) : null}
+    </>
+  );
+};
 
 export const Chart = () => {
   const [query, setQuery] = useQueryParams({
@@ -43,6 +106,12 @@ export const Chart = () => {
       context: { serverName: "PYTHON" },
     }
   );
+  const [tooltipValues, setTooltipValues] = React.useState<
+    {
+      x: string;
+      y: number;
+    }[]
+  >([]);
 
   React.useEffect(() => {
     if (search) {
@@ -62,6 +131,16 @@ export const Chart = () => {
     })
   );
 
+  const onMouseOnLeave = () => {
+    setTooltipValues([]);
+  };
+
+  const onNearestX = (value: any, { index }: { index: number }) => {
+    console.log("onNearestX", mappedData[index]);
+
+    setTooltipValues([mappedData[index]]);
+  };
+
   const handleOnDragEnd = (area: any) => {
     if (area) {
       setQuery({
@@ -78,8 +157,13 @@ export const Chart = () => {
           <Spin />
         </Container>
       ) : mappedData?.length ? (
-        <FlexibleWidthXYPlot xType="ordinal" margin={{ left: 50 }} height={180}>
-          <LineMarkSeries data={mappedData} />
+        <FlexibleWidthXYPlot
+          onMouseLeave={onMouseOnLeave}
+          xType="ordinal"
+          margin={{ left: 50 }}
+          height={180}
+        >
+          <LineMarkSeries onNearestX={onNearestX} data={mappedData} />
           <XAxis
             style={{
               fontSize: "8px",
@@ -94,6 +178,14 @@ export const Chart = () => {
             color="#829AE3"
             enableY={false}
             onDragEnd={handleOnDragEnd}
+          />
+          <Tooltip
+            values={tooltipValues}
+            title={
+              tooltipValues[0]?.x &&
+              format(new Date(tooltipValues[0]?.x), "MMMM yyyy")
+            }
+            list={[{ label: "Volume", value: tooltipValues[0]?.y || "" }]}
           />
         </FlexibleWidthXYPlot>
       ) : (
