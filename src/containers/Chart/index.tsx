@@ -14,8 +14,10 @@ import {
   Highlight,
   FlexibleWidthXYPlot,
   LineMarkSeries,
+  LineSeries,
   Crosshair,
   CrosshairProps,
+  HighlightProps,
 } from "react-vis";
 
 const DATE_FORMAT = "dd-MM-yy";
@@ -64,18 +66,24 @@ export interface ToolptipProps extends CrosshairProps {
   list: { label: string; value: string | number; color?: string }[];
 }
 
+const ThemeTooltip = styled(Crosshair)`
+  .rv-crosshair__line {
+    background: #ff5208 !important;
+  }
+`;
+
 const Tooltip: React.FC<ToolptipProps> = ({
   values,
   title,
   list,
   ...props
 }) => {
-  console.log("values", values);
+  // console.log("values", values);
 
   return (
     <>
       {values?.length ? (
-        <Crosshair values={values} {...props}>
+        <ThemeTooltip values={values} {...props}>
           <TooltipContainer>
             <TooltipTitle>{title}</TooltipTitle>
             {list.map((ele) => {
@@ -87,11 +95,13 @@ const Tooltip: React.FC<ToolptipProps> = ({
               );
             })}
           </TooltipContainer>
-        </Crosshair>
+        </ThemeTooltip>
       ) : null}
     </>
   );
 };
+
+const CustomHighlight = styled(Highlight)``;
 
 export const Chart = () => {
   const [query, setQuery] = useQueryParams({
@@ -136,7 +146,7 @@ export const Chart = () => {
   };
 
   const onNearestX = (value: any, { index }: { index: number }) => {
-    console.log("onNearestX", mappedData[index]);
+    // console.log("onNearestX", mappedData[index]);
 
     setTooltipValues([mappedData[index]]);
   };
@@ -163,19 +173,25 @@ export const Chart = () => {
           margin={{ left: 50 }}
           height={180}
         >
-          <LineMarkSeries onNearestX={onNearestX} data={mappedData} />
+          <LineSeries
+            color="#FF5208"
+            onNearestX={onNearestX}
+            data={mappedData}
+            curve={"curveMonotoneX"}
+          />
           <XAxis
             style={{
               fontSize: "8px",
             }}
+            tickSize={0}
             tickFormat={(value) => {
               return format(new Date(value), DATE_FORMAT);
             }}
           />
-          <YAxis />
-          <Highlight
+          <YAxis hideLine tickSize={0} />
+          <CustomHighlight
             drag
-            color="#829AE3"
+            color="#FF5208"
             enableY={false}
             onDragEnd={handleOnDragEnd}
           />

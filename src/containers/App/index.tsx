@@ -8,7 +8,7 @@ const App = () => {
     <div>
       <SearchBar />
       <Chart />
-      <Tweets />
+      {/* <Tweets /> */}
     </div>
   );
 };
